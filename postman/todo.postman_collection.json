@@ -1,0 +1,32 @@
+{
+	"info": {
+		"_postman_id": "d3194d26-f03c-4063-bd38-e2e35fd83e42",
+		"name": "todo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "55938107",
+		"_collection_link": "https://vaibhav-chauhan-711d353f-599488.postman.co/workspace/Vaibhav's-Workspace~0ae0214d-3d32-4809-85f1-571dd1b7885c/collection/55938107-d3194d26-f03c-4063-bd38-e2e35fd83e42?action=share&source=collection_link&creator=55938107"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

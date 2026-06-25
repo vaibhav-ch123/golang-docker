@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"httpserver/handler"
 	"net/http"
 	"time"
 
@@ -25,14 +25,16 @@ func SetupUpRoutes() *Server {
 	router := chi.NewRouter()
 
 	router.Route("/v1", func(r chi.Router) {
-		r.Get("/server", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintln(w, "hello server!")
+
+		r.Route("/", func(public chi.Router) {
+			public.Post("/register", handler.RegisterUser)
+			public.Post("/login", handler.LoginUser)
 		})
-		r.Route("/", func(r chi.Router) {
-			r.Get("/user", func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprintln(w, "hello user!")
-			})
+
+		r.Route("/todo", func(r chi.Router) {
+
 		})
+
 	})
 
 	return &Server{
