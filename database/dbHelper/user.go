@@ -37,13 +37,6 @@ func CreateUser(db sqlx.Ext, name, email, password string) (string, error) {
 	return userID, nil
 }
 
-func CreateUserRole(db sqlx.Ext, userID string, role models.Role) error {
-
-	SQL := `INSERT INTO user_roles(user_id, role) VALUES ($1, $2)`
-	_, err := db.Exec(SQL, userID, role)
-	return err
-}
-
 func CreateUserSession(db sqlx.Ext, userID, sessionToken string) error {
 
 	SQL := `INSERT INTO user_session(user_id, session_token) VALUES ($1, $2)`
@@ -75,4 +68,41 @@ func GetUserIDByPassword(email, password string) (string, error) {
 	}
 
 	return userID, nil
+}
+
+func GetUserBySession(sessionToken string) (*models.User, error) {
+    
+	SQL := `SELECT
+	            u.id,
+				u.name,
+				u.email,
+				u.created_at
+	        FROM users u
+			JOIN user_session us on u.id = us.user_id 
+			WHERE u.archived_at IS NULL AND us.session_token = $1`
+
+	var user models.User
+	err := database.Todo.Get(&user, SQL, sessionToken)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	
+	return &user, nil
+}
+
+func DeleteSessionToken(userID, token string) error {
+	SQL := `DELETE FROM user_session WHERE user_id = $1 AND session_token = $2`
+	_, err := database.Todo.Exec(SQL, userID, token)
+	return err
+}
+
+func DeleteUserByID(userID string) error {
+	SQL := `UPDATE users
+	        SET archived_at = NOW()
+			WHERE id = $1`
+	_, err := database.Todo.Exec(SQL, userID)
+	return err		
 }

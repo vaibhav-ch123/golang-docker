@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"httpserver/handler"
+	"httpserver/middlewares"
 	"net/http"
 	"time"
 
@@ -25,14 +26,26 @@ func SetupUpRoutes() *Server {
 	router := chi.NewRouter()
 
 	router.Route("/v1", func(r chi.Router) {
-
+		r.Use(middlewares.CommonMiddlewares()...)
 		r.Route("/", func(public chi.Router) {
 			public.Post("/register", handler.RegisterUser)
 			public.Post("/login", handler.LoginUser)
 		})
 
-		r.Route("/todo", func(r chi.Router) {
+		r.Route("/user", func(user chi.Router) {
+			user.Use(middlewares.AuthMiddleware)
+			user.Delete("/logout", handler.LogoutUser)
+			user.Get("/", handler.GetUserInfo)
+			user.Delete("/", handler.DeleteUser)
+		})
 
+		r.Route("/todo", func(todo chi.Router) {
+			todo.Use(middlewares.AuthMiddleware)
+			todo.Post("/", handler.AddTodo)
+			todo.Get("/{id}", handler.GetTodo)
+			todo.Get("/", handler.GetTodos)
+			todo.Delete("/{id}", handler.DeleteTodo)
+			todo.Patch("/{id}", handler.UpdateTodo)
 		})
 
 	})

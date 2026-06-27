@@ -2,6 +2,8 @@ package database
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -64,22 +66,31 @@ func ShutDownDatabase() error {
 	return Todo.Close()
 }
 
-func Tx(fn func(tx *sqlx.Tx) error) error{
-    tx, err := Todo.Beginx()
+func Tx(fn func(tx *sqlx.Tx) error) error {
+	tx, err := Todo.Beginx()
 	if err != nil {
 		return fmt.Errorf("failed to start a transation: %+v", err)
 	}
-	defer func(){
-       if err != nil {
-		  if rollBackErr := tx.Rollback(); rollBackErr != nil {
-			logrus.Errorf("failed to rollback tx: %s", rollBackErr)
-		  }
-		  return
-	   }
-	   if commitErr := tx.Commit(); commitErr != nil {
-		  logrus.Errorf("failed to commit tx: %s", commitErr)
-	   }
+	defer func() {
+		if err != nil {
+			if rollBackErr := tx.Rollback(); rollBackErr != nil {
+				logrus.Errorf("failed to rollback tx: %s", rollBackErr)
+			}
+			return
+		}
+		if commitErr := tx.Commit(); commitErr != nil {
+			logrus.Errorf("failed to commit tx: %s", commitErr)
+		}
 	}()
 	err = fn(tx)
 	return err
+}
+
+func ReplaceSQL(old string, oldPattern string) string{
+
+	count := strings.Count(old, oldPattern)
+	for i := 1 ; i<=count ; i++ {
+		old = strings.Replace(old, oldPattern, "$"+strconv.Itoa(i), 1)
+	}
+	return old
 }

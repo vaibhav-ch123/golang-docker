@@ -1,7 +1,5 @@
 BEGIN;
 
-DROP TABLE IF EXISTS todo;
-
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -35,14 +33,7 @@ CREATE TABLE IF NOT EXISTS user_session (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS todo (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT NOT NULL,
-    pending_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    archived_at TIMESTAMP WITH TIME ZONE
-);
+ALTER TABLE todo
+ADD COLUMN user_id UUID NOT NULL REFERENCES users(id);
 
 COMMIT;

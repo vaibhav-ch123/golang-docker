@@ -3,7 +3,7 @@ package handler
 import (
 	"httpserver/database"
 	"httpserver/database/dbHelper"
-	"httpserver/models"
+	"httpserver/middlewares"
 	"httpserver/utils"
 	"net/http"
 	"time"
@@ -17,16 +17,10 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Name     string      `json:"name"`
 		Email    string      `json:"email"`
 		Password string      `json:"password"`
-		Role     models.Role `json:"role"`
 	}{}
 
 	if err := utils.ParseBody(r.Body, &body); err != nil {
 		utils.ResponseError(w, http.StatusBadRequest, err, "failed parse request body!")
-		return
-	}
-
-	if !body.Role.IsValid() {
-		utils.ResponseError(w, http.StatusBadRequest, nil, "invalid role type provided!")
 		return
 	}
 
@@ -58,11 +52,6 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		userID, saveErr := dbHelper.CreateUser(tx, body.Name, body.Email, hashedPassword)
 		if saveErr != nil {
 			return saveErr
-		}
-
-		roleErr := dbHelper.CreateUserRole(tx, userID, body.Role)
-		if roleErr != nil {
-			return roleErr
 		}
 
 		sessionErr := dbHelper.CreateUserSession(tx, userID, sessionToken)
@@ -116,4 +105,52 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}{
 		Token: sessionToken,
 	})
+}
+
+func LogoutUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("x-api-key")
+	userCtx := middlewares.UserContext(r)
+	if userCtx == nil {
+        w.WriteHeader(http.StatusForbidden)
+        return
+	}
+
+	err := dbHelper.DeleteSessionToken(userCtx.ID, token)
+	if err != nil {
+		utils.ResponseError(w, http.StatusInternalServerError, err, "failed to logout user")
+		return
+	}
+	utils.ResponseJSON(w, http.StatusAccepted, nil)
+}
+
+func GetUserInfo(w http.ResponseWriter, r *http.Request) {
+	userCtx := middlewares.UserContext(r)
+	if userCtx == nil {
+        w.WriteHeader(http.StatusForbidden)
+        return
+	}
+	
+	utils.ResponseJSON(w, http.StatusOK, userCtx)
+}
+
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+
+	token := r.Header.Get("x-api-key")
+	userCtx := middlewares.UserContext(r)
+	if userCtx == nil {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+    
+	if err := dbHelper.DeleteUserByID(userCtx.ID); err != nil {
+		utils.ResponseError(w, http.StatusInternalServerError, err, "failed to delete user!")
+		return
+	}
+
+	if err := dbHelper.DeleteSessionToken(userCtx.ID, token); err != nil {
+		utils.ResponseError(w, http.StatusInternalServerError, err, "failed to delete user!")
+		return 
+	}
+    
+	utils.ResponseJSON(w, http.StatusOK, nil)
 }

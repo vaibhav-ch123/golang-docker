@@ -4,8 +4,8 @@ ALTER TABLE todo DROP COLUMN IF EXISTS user_id;
 
 DROP TABLE IF EXISTS user_session;
 DROP TABLE IF EXISTS user_roles;
-DROP TYPE IF EXISTS role_type;
-DROP INDEX IF EXISTS active_user;
 DROP TABLE IF EXISTS users;
+
+DROP TYPE IF EXISTS role_type;
 
 COMMIT;
