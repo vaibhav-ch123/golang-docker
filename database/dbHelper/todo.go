@@ -6,6 +6,8 @@ import (
 	"httpserver/models"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 func CreateTodo(userID string, name string, description string, pendingAt time.Time) (string, error) {
@@ -61,12 +63,12 @@ func UpdateTodoByID(todoID string, userID string, agr []string, val []any) error
 
 	SQL := `UPDATE TODO 
 	        SET %s 
-			WHERE id = ? AND user_id = ?`
+			WHERE id = ? AND user_id = ?`	
 
 	SQL = fmt.Sprintf(SQL, strings.Join(agr, ", "))		
 
 	SQL = database.ReplaceSQL(SQL, "?")
-
+    
 	val = append(val, todoID, userID)
 
 	_, err := database.Todo.Exec(SQL, val...)

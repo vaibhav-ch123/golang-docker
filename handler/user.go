@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"database/sql"
 	"httpserver/database"
 	"httpserver/database/dbHelper"
 	"httpserver/middlewares"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -88,6 +90,16 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID, userErr := dbHelper.GetUserIDByPassword(body.Email, body.Password)
+	if userErr == sql.ErrNoRows {
+		utils.ResponseError(w, http.StatusBadRequest, userErr, "No user found!")
+		return
+	}
+
+	if userErr == bcrypt.ErrMismatchedHashAndPassword {
+		utils.ResponseError(w, http.StatusBadRequest, userErr, "Wrong password!")
+		return
+	}
+
 	if userErr != nil {
 		utils.ResponseError(w, http.StatusInternalServerError, userErr, "failed to find user!")
 		return
@@ -115,7 +127,7 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
         return
 	}
 
-	err := dbHelper.DeleteSessionToken(userCtx.ID, token)
+	err := dbHelper.DeleteSessionToken(database.Todo, userCtx.ID, token)
 	if err != nil {
 		utils.ResponseError(w, http.StatusInternalServerError, err, "failed to logout user")
 		return
@@ -141,15 +153,23 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-    
-	if err := dbHelper.DeleteUserByID(userCtx.ID); err != nil {
-		utils.ResponseError(w, http.StatusInternalServerError, err, "failed to delete user!")
-		return
-	}
 
-	if err := dbHelper.DeleteSessionToken(userCtx.ID, token); err != nil {
-		utils.ResponseError(w, http.StatusInternalServerError, err, "failed to delete user!")
-		return 
+	txErr := database.Tx(func(tx *sqlx.Tx) error {
+
+		if err := dbHelper.DeleteSessionToken(tx, userCtx.ID, token); err != nil {
+		  return err
+	    }
+
+        if err := dbHelper.DeleteUserByID(tx, userCtx.ID); err != nil {
+		  return err
+	    }
+
+		return nil
+	})
+
+	if txErr != nil {
+        utils.ResponseError(w, http.StatusInternalServerError, txErr, "failed to delete user!")
+		return  
 	}
     
 	utils.ResponseJSON(w, http.StatusOK, nil)

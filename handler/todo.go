@@ -33,7 +33,7 @@ func AddTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(strings.TrimSpace(body.Name)) < 6 {
-		utils.ResponseError(w, http.StatusBadRequest, nil, "todo name length must by greater 6")
+		utils.ResponseError(w, http.StatusBadRequest, nil, "todo name length must greater then 6")
 		return
 	}
 
@@ -131,9 +131,19 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 		PendingAt *time.Time      `json:"pendingAt"`
 	}{}
 
-	if parseErr := utils.ParseBody(r.Body, body); parseErr != nil {
+	if parseErr := utils.ParseBody(r.Body, &body); parseErr != nil {
 		utils.ResponseError(w, http.StatusBadRequest, parseErr, "failed to parse body!")
 		return 
+	}
+
+	if body.Name != nil && len(strings.TrimSpace(*body.Name)) < 6 {
+		utils.ResponseError(w, http.StatusBadRequest, nil, "todo name length must greater then 6")
+		return
+	}
+
+	if body.Description != nil && len(strings.TrimSpace(*body.Description)) < 10 {
+		utils.ResponseError(w, http.StatusBadRequest, nil, "todo description length must by greater 10")
+		return
 	}
 
 	todoID := chi.URLParam(r, "id")
@@ -143,22 +153,22 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
         return
 	}
-    agr := make([]string, 1)
-	val := make([]any, 1)
+    agr := make([]string, 0)
+	val := make([]any, 0)
 	
 	if body.Name != nil {
 		agr = append(agr, "name = ?")
-		val = append(val, body.Name)
+		val = append(val, *body.Name)
 	}
 
 	if body.Description != nil {
 		agr = append(agr, "description = ?")
-		val = append(val, body.Description)
+		val = append(val, *body.Description)
 	}
 
 	if body.PendingAt != nil {
         agr = append(agr, "pending_at = ?")
-		val = append(val, body.PendingAt)
+		val = append(val, *body.PendingAt)
 	}
 	
 	if err := dbHelper.UpdateTodoByID(todoID, userCtx.ID, agr, val); err != nil {

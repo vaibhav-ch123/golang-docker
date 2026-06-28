@@ -54,13 +54,9 @@ func GetUserIDByPassword(email, password string) (string, error) {
 			WHERE
 			    archived_at IS NULL 
 				AND email = TRIM(LOWER($1))`
-    var userID, passwordHash string
-	err := database.Todo.QueryRowx(SQL, email).Scan(&userID, &passwordHash)
-    if err != nil && err != sql.ErrNoRows {
+	var userID, passwordHash string
+	if err := database.Todo.QueryRowx(SQL, email).Scan(&userID, &passwordHash); err != nil {
 		return "", err
-	}
-	if err == sql.ErrNoRows {
-		return "", nil
 	}
 
 	if passwordErr := utils.CheckPassword(password, passwordHash); passwordErr != nil {
@@ -71,7 +67,7 @@ func GetUserIDByPassword(email, password string) (string, error) {
 }
 
 func GetUserBySession(sessionToken string) (*models.User, error) {
-    
+
 	SQL := `SELECT
 	            u.id,
 				u.name,
@@ -89,20 +85,20 @@ func GetUserBySession(sessionToken string) (*models.User, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
-	
+
 	return &user, nil
 }
 
-func DeleteSessionToken(userID, token string) error {
+func DeleteSessionToken(db sqlx.Ext, userID, token string) error {
 	SQL := `DELETE FROM user_session WHERE user_id = $1 AND session_token = $2`
-	_, err := database.Todo.Exec(SQL, userID, token)
+	_, err := db.Exec(SQL, userID, token)
 	return err
 }
 
-func DeleteUserByID(userID string) error {
+func DeleteUserByID(db sqlx.Ext, userID string) error {
 	SQL := `UPDATE users
 	        SET archived_at = NOW()
 			WHERE id = $1`
-	_, err := database.Todo.Exec(SQL, userID)
-	return err		
+	_, err := db.Exec(SQL, userID)
+	return err
 }
