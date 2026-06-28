@@ -1,0 +1,291 @@
+{
+	"info": {
+		"_postman_id": "d3194d26-f03c-4063-bd38-e2e35fd83e42",
+		"name": "todoserver",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "55938107",
+		"_collection_link": "https://vaibhav-chauhan-711d353f-599488.postman.co/workspace/Vaibhav's-Workspace~0ae0214d-3d32-4809-85f1-571dd1b7885c/collection/55938107-d3194d26-f03c-4063-bd38-e2e35fd83e42?action=share&source=collection_link&creator=55938107"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"vaibhav\",\n    \"email\": \"vaibhav@gmail.com\",\n    \"password\": \"12345678\",\n    \"role\": \"user\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"vaibhav@gmail.com\",\n    \"password\": \"12345678\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "6c7e74672997c3042912fd23c5d1537ec9d4d624145c336288f9ba041a37cfd931aed06abf55249289929fe7c9b02b052050e159f61a5ed436c5e7d8396da152",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getuser",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "6c7e74672997c3042912fd23c5d1537ec9d4d624145c336288f9ba041a37cfd931aed06abf55249289929fe7c9b02b052050e159f61a5ed436c5e7d8396da152",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete-user",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "todo",
+			"item": [
+				{
+					"name": "create-todo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "$2a$10$WRPl4n2sBSBGs.Ny0pbu0uNX.rgdm9wubtv1B5cqy7avnoazHEd9.",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"go http server todo\",\n    \"description\": \"creating todo for practicing http server\",\n    \"pendingAt\": \"2026-06-30T18:30:00+05:30\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/todo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"todo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-todo",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "599dbf25e1567ee0657045d977fdc9fb837282b2bf2ece4002813ce29dbe96de48b698fc57ee5294eb7609745fd95140a3f58efbb3db46369412a88443ffec21",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/todo/c2b449b5-93b9-4baa-97d9-8ca33cac7068",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"todo",
+								"c2b449b5-93b9-4baa-97d9-8ca33cac7068"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-todos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "599dbf25e1567ee0657045d977fdc9fb837282b2bf2ece4002813ce29dbe96de48b698fc57ee5294eb7609745fd95140a3f58efbb3db46369412a88443ffec21",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/todo/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"todo",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete-todo",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "599dbf25e1567ee0657045d977fdc9fb837282b2bf2ece4002813ce29dbe96de48b698fc57ee5294eb7609745fd95140a3f58efbb3db46369412a88443ffec21",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/todo/525ca563-ccbc-44ac-b7ea-829cc77dc5fb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"todo",
+								"525ca563-ccbc-44ac-b7ea-829cc77dc5fb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-todo",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "599dbf25e1567ee0657045d977fdc9fb837282b2bf2ece4002813ce29dbe96de48b698fc57ee5294eb7609745fd95140a3f58efbb3db46369412a88443ffec21",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/v1/todo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"todo"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

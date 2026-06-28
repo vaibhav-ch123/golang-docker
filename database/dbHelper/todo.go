@@ -6,8 +6,6 @@ import (
 	"httpserver/models"
 	"strings"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 func CreateTodo(userID string, name string, description string, pendingAt time.Time) (string, error) {
