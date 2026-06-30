@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS todo (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     description TEXT NOT NULL,
+    is_completed BOOLEAN NOT NULL DEFAULT FALSE,
     pending_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     archived_at TIMESTAMP WITH TIME ZONE

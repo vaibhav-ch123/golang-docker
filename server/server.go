@@ -46,6 +46,7 @@ func SetupUpRoutes() *Server {
 			todo.Get("/", handler.GetTodos)
 			todo.Delete("/{id}", handler.DeleteTodo)
 			todo.Patch("/{id}", handler.UpdateTodo)
+			todo.Patch("/{id}/is-completed", handler.IsTodoCompleted)
 		})
 
 	})

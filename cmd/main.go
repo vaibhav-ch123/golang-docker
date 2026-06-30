@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,24 +17,28 @@ var ShutDownTimeout = 5 * time.Second
 
 func main() {
 
+	if err := godotenv.Load(); err != nil {
+		logrus.Errorln("error loading .env file!")
+	}
+
 	chn := make(chan os.Signal, 1)
 
 	signal.Notify(chn, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := server.SetupUpRoutes()
 	if err := database.ConnectAndMigrate(
-		"localhost",
-		"5432",
-		"todo",
-		"postgres",
-		"postgres123",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
 		database.SSLModeDisable); err != nil {
 		logrus.Panicf("Failed to initialize and migrate database with error: %+v", err)
 	}
 	logrus.Print("migration successful!")
 
 	go func() {
-		if err := srv.Run(":8080"); err != nil {
+		if err := srv.Run(":" + os.Getenv("SERVER_PORT")); err != nil {
 			fmt.Println("server is fail to run ", err)
 		}
 	}()

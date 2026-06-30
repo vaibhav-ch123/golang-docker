@@ -6,6 +6,8 @@ import (
 	"httpserver/models"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 func CreateTodo(userID string, name string, description string, pendingAt time.Time) (string, error) {
@@ -22,7 +24,7 @@ func CreateTodo(userID string, name string, description string, pendingAt time.T
 
 func GetTodoByID(todoID string, userID string) (models.Todo, error) {
 
-	SQL := `SELECT id, user_id, name, description, pending_at, created_at
+	SQL := `SELECT id, user_id, name, description, is_completed, pending_at, created_at
 	        FROM TODO 
 			WHERE id = $1 AND user_id = $2 AND archived_at IS NULL`
 
@@ -36,7 +38,7 @@ func GetTodoByID(todoID string, userID string) (models.Todo, error) {
 
 func GetTodosByUserID(userID string) ([]models.Todo, error) {
 
-	SQL := `SELECT id, user_id, name, description, pending_at, created_at
+	SQL := `SELECT id, user_id, name, description, is_completed, pending_at, created_at
 	FROM TODO
 	WHERE user_id = $1 AND archived_at IS NULL`
 	var todos []models.Todo
@@ -51,8 +53,8 @@ func DeleteTodoByID(todoID string, userID string) error {
 	SQL := `UPDATE TODO
 	        SET archived_at = NOW()
 			WHERE id = $1 AND user_id = $2`
-	
-	_, err := database.Todo.Exec(SQL, todoID, userID)		
+
+	_, err := database.Todo.Exec(SQL, todoID, userID)
 
 	return err
 }
@@ -61,15 +63,38 @@ func UpdateTodoByID(todoID string, userID string, agr []string, val []any) error
 
 	SQL := `UPDATE TODO 
 	        SET %s 
-			WHERE id = ? AND user_id = ?`	
+			WHERE id = ? AND user_id = ?`
 
-	SQL = fmt.Sprintf(SQL, strings.Join(agr, ", "))		
+	SQL = fmt.Sprintf(SQL, strings.Join(agr, ", "))
 
 	SQL = database.ReplaceSQL(SQL, "?")
-    
+
 	val = append(val, todoID, userID)
 
 	_, err := database.Todo.Exec(SQL, val...)
+
+	return err
+}
+
+func IsCompletedTodoByID(todoID string, userID string) (bool, error) {
+
+	SQL := `SELECT is_completed from todo WHERE id = $1 AND user_id = $2 AND archived_at IS NULL`
+
+	var iscompleted bool
+	if err := database.Todo.Get(&iscompleted, SQL, todoID, userID); err != nil {
+		return false, err
+	}
+
+	return iscompleted, nil
+}
+
+func MarkCompletedTodoByID(todoID string, userID string, is_completed bool) error {
+
+	SQL := `UPDATE todo 
+	        SET is_completed = $1 
+			WHERE id = $2 AND user_id = $3 AND archived_at IS NULL`
+	logrus.Println(is_completed)
+	_, err := database.Todo.Exec(SQL, !is_completed, todoID, userID)
 
 	return err
 }

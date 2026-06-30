@@ -49,7 +49,7 @@ func MigrateUp(db *sqlx.DB) error {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://../database/migrations",
+		"file://database/migrations",
 		"postgres", driver)
 	if err != nil {
 		return err
@@ -86,10 +86,10 @@ func Tx(fn func(tx *sqlx.Tx) error) error {
 	return err
 }
 
-func ReplaceSQL(old string, oldPattern string) string{
+func ReplaceSQL(old string, oldPattern string) string {
 
 	count := strings.Count(old, oldPattern)
-	for i := 1 ; i<=count ; i++ {
+	for i := 1; i <= count; i++ {
 		old = strings.Replace(old, oldPattern, "$"+strconv.Itoa(i), 1)
 	}
 	return old

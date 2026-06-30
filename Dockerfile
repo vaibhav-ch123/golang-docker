@@ -1,4 +1,4 @@
-From golang:1.25
+From golang:1.25 AS backend-dev
 
 WORKDIR /app
 
