@@ -16,9 +16,9 @@ import (
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	body := struct {
-		Name     string      `json:"name"`
-		Email    string      `json:"email"`
-		Password string      `json:"password"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}{}
 
 	if err := utils.ParseBody(r.Body, &body); err != nil {
@@ -123,8 +123,8 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("x-api-key")
 	userCtx := middlewares.UserContext(r)
 	if userCtx == nil {
-        w.WriteHeader(http.StatusForbidden)
-        return
+		w.WriteHeader(http.StatusForbidden)
+		return
 	}
 
 	err := dbHelper.DeleteSessionToken(database.Todo, userCtx.ID, token)
@@ -138,18 +138,15 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	userCtx := middlewares.UserContext(r)
 	if userCtx == nil {
-        w.WriteHeader(http.StatusForbidden)
-        return
+		w.WriteHeader(http.StatusForbidden)
+		return
 	}
 
-	
-	
 	utils.ResponseJSON(w, http.StatusOK, userCtx)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
-	token := r.Header.Get("x-api-key")
 	userCtx := middlewares.UserContext(r)
 	if userCtx == nil {
 		w.WriteHeader(http.StatusForbidden)
@@ -158,21 +155,25 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	txErr := database.Tx(func(tx *sqlx.Tx) error {
 
-		if err := dbHelper.DeleteSessionToken(tx, userCtx.ID, token); err != nil {
-		  return err
-	    }
+		if err := dbHelper.DeleteSessionTokensByUserID(tx, userCtx.ID); err != nil {
+			return err
+		}
 
-        if err := dbHelper.DeleteUserByID(tx, userCtx.ID); err != nil {
-		  return err
-	    }
+		if err := dbHelper.DeleteTodosByUserID(tx, userCtx.ID); err != nil {
+			return err
+		}
+
+		if err := dbHelper.DeleteUserByID(tx, userCtx.ID); err != nil {
+			return err
+		}
 
 		return nil
 	})
 
 	if txErr != nil {
-        utils.ResponseError(w, http.StatusInternalServerError, txErr, "failed to delete user!")
-		return  
+		utils.ResponseError(w, http.StatusInternalServerError, txErr, "failed to delete user!")
+		return
 	}
-    
+
 	utils.ResponseJSON(w, http.StatusOK, nil)
 }

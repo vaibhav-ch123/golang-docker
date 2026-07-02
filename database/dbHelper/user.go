@@ -90,15 +90,25 @@ func GetUserBySession(sessionToken string) (*models.User, error) {
 }
 
 func DeleteSessionToken(db sqlx.Ext, userID, token string) error {
-	SQL := `DELETE FROM user_session WHERE user_id = $1 AND session_token = $2`
+	SQL := `UPDATE user_session 
+	        SET archived_at = NOW()
+			WHERE user_id = $1 AND session_token = $2 AND archived_at IS NULL`
 	_, err := db.Exec(SQL, userID, token)
+	return err
+}
+
+func DeleteSessionTokensByUserID(db sqlx.Ext, userID string) error {
+	SQL := `UPDATE user_session 
+	        SET archived_at = NOW()
+			WHERE user_id = $1 AND archived_at IS NULL`
+	_, err := db.Exec(SQL, userID)
 	return err
 }
 
 func DeleteUserByID(db sqlx.Ext, userID string) error {
 	SQL := `UPDATE users
 	        SET archived_at = NOW()
-			WHERE id = $1`
+			WHERE id = $1 AND archived_at IS NULL`
 	_, err := db.Exec(SQL, userID)
 	return err
 }

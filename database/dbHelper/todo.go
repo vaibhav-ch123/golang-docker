@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )
 
@@ -52,9 +53,20 @@ func DeleteTodoByID(todoID string, userID string) error {
 
 	SQL := `UPDATE TODO
 	        SET archived_at = NOW()
-			WHERE id = $1 AND user_id = $2`
+			WHERE id = $1 AND user_id = $2 AND archived_at IS NULL`
 
 	_, err := database.Todo.Exec(SQL, todoID, userID)
+
+	return err
+}
+
+func DeleteTodosByUserID(db sqlx.Ext, userID string) error {
+
+	SQL := `UPDATE TODO
+	        SET archived_at = NOW()
+			WHERE user_id = $1 AND archived_at IS NULL`
+
+	_, err := db.Exec(SQL, userID)
 
 	return err
 }
@@ -63,7 +75,7 @@ func UpdateTodoByID(todoID string, userID string, agr []string, val []any) error
 
 	SQL := `UPDATE TODO 
 	        SET %s 
-			WHERE id = ? AND user_id = ?`
+			WHERE id = ? AND user_id = ? AND archived_at IS NULL`
 
 	SQL = fmt.Sprintf(SQL, strings.Join(agr, ", "))
 
