@@ -50,6 +50,9 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionToken := utils.HashString(body.Email + time.Now().String())
+
+	var jwtToken string
+
 	txErr := database.Tx(func(tx *sqlx.Tx) error {
 		userID, saveErr := dbHelper.CreateUser(tx, body.Name, body.Email, hashedPassword)
 		if saveErr != nil {
@@ -61,6 +64,12 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 			return sessionErr
 		}
 
+		token, jwtErr := utils.CreateJwtToken(userID, body.Name, body.Email)
+		if jwtErr != nil {
+			return jwtErr
+		}
+		jwtToken = token
+
 		return nil
 	})
 
@@ -70,9 +79,11 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ResponseJSON(w, http.StatusCreated, struct {
-		Token string `json:"token"`
+		SessionToken string `json:"sessionToken"`
+		JwtToken     string `json:"jwtToken"`
 	}{
-		Token: sessionToken,
+		SessionToken: sessionToken,
+		JwtToken:     jwtToken,
 	})
 
 }
@@ -105,6 +116,18 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user, userInfoErr := dbHelper.GetUserByID(userID)
+	if userInfoErr != nil {
+		utils.ResponseError(w, http.StatusInternalServerError, userInfoErr, "failed to find user!")
+		return
+	}
+
+	jwtToken, jwtTokenErr := utils.CreateJwtToken(userID, user.Name, user.Email)
+	if jwtTokenErr != nil {
+		utils.ResponseError(w, http.StatusInternalServerError, userInfoErr, "failed to find user!")
+		return
+	}
+
 	sessionToken := utils.HashString(body.Email + time.Now().String())
 	sessionErr := dbHelper.CreateUserSession(database.Todo, userID, sessionToken)
 	if sessionErr != nil {
@@ -113,9 +136,11 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ResponseJSON(w, http.StatusCreated, struct {
-		Token string `json:"token"`
+		SessionToken string `json:"sessionToken"`
+		JwtToken     string `json:"jwtToken"`
 	}{
-		Token: sessionToken,
+		SessionToken: sessionToken,
+		JwtToken:     jwtToken,
 	})
 }
 
@@ -126,7 +151,6 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-
 	err := dbHelper.DeleteSessionToken(database.Todo, userCtx.ID, token)
 	if err != nil {
 		utils.ResponseError(w, http.StatusInternalServerError, err, "failed to logout user")

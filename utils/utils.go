@@ -9,8 +9,11 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"os"
 	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/teris-io/shortid"
 	"golang.org/x/crypto/bcrypt"
@@ -108,20 +111,55 @@ func ResponseError(w http.ResponseWriter, statusCode int, err error, messageToUs
 	}
 }
 
-func HashPassword(password string) (string, error){
+func HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-    if err != nil{
+	if err != nil {
 		return "", fmt.Errorf("failed to hash password: %w", err)
-	} 
+	}
 	return string(hashedPassword), nil
 }
 
-func CheckPassword(password, hashedPassword string) error{
-    return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+func CheckPassword(password, hashedPassword string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
 func HashString(toHash string) string {
-    sha := sha512.New()
+	sha := sha512.New()
 	sha.Write([]byte(toHash))
-	return hex.EncodeToString(sha.Sum(nil))		
+	return hex.EncodeToString(sha.Sum(nil))
+}
+
+func CreateJwtToken(userID, userName, userEmail string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"UserID":    userID,
+			"UserName":  userName,
+			"UserEmail": userEmail,
+			"ExpiresAt": time.Now().Add(time.Hour * 24),
+			"IssuedAt":  time.Now(),
+		})
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func VerifyJwtToken(tokenString string) (map[string]any, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return token.Claims.(jwt.MapClaims), nil
 }

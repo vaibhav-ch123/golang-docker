@@ -2,6 +2,7 @@ package dbHelper
 
 import (
 	"database/sql"
+	"fmt"
 	"httpserver/database"
 	"httpserver/models"
 	"httpserver/utils"
@@ -66,6 +67,20 @@ func GetUserIDByPassword(email, password string) (string, error) {
 	return userID, nil
 }
 
+func GetUserByID(userID string) (models.User, error) {
+
+	SQL := `SELECT id, name, email, created_at
+	        FROM users 
+			WHERE archived_at IS NULL AND id = $1`
+
+	var user models.User
+	if err := database.Todo.Get(&user, SQL, userID); err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
 func GetUserBySession(sessionToken string) (*models.User, error) {
 
 	SQL := `SELECT
@@ -93,7 +108,16 @@ func DeleteSessionToken(db sqlx.Ext, userID, token string) error {
 	SQL := `UPDATE user_session 
 	        SET archived_at = NOW()
 			WHERE user_id = $1 AND session_token = $2 AND archived_at IS NULL`
-	_, err := db.Exec(SQL, userID, token)
+	result, err := db.Exec(SQL, userID, token)
+
+	row, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if row == 0 {
+		return fmt.Errorf("session not found!")
+	}
 	return err
 }
 
